@@ -10,16 +10,24 @@
 #include "EthernetInterface.h"
 #include "NetworkInterface.h"
 
+#include <stdio.h>
+#include <string.h>
+
 //#include <MQTTNetwork.h>
 //#include <MQTTClient.h>
 //#include <MQTTmbed.h> // Countdown
 #include <MQTTClientMbedOs.h>
+extern "C" void mbed_mac_address(char *s);
+
+char printbuf[100];
+
+int arrivedcount = 0;
 
 void messageArrived(MQTT::MessageData& md)
 {
     MQTT::Message &message = md.message;
-    printf("Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 0, \
-            message.qos, message.retained, message.dup, message.id);
+    sprintf(printbuf, "Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
+		++arrivedcount, message.qos, message.retained, message.dup, message.id);
     printf("Payload %.*s\n", (int)message.payloadlen, (char*)message.payload);
 }
 
@@ -93,15 +101,22 @@ int main() {
     data.clientID.cstring = (char *)"MQTT_CONNECT";
     client.connect(data);
     int rc;
-    rc = client.subscribe("test", MQTT::QOS0, messageArrived);
-    if (rc != 0) {
-        printf("rc from MQTT subscribe is %d\n", rc);
-    }
-    
+    rc = client.subscribe("test", MQTT::QOS1, messageArrived);
+
     while (true) {
-        
-        led = !led;
-        
-        ThisThread::sleep_for(250ms);
+
+        MQTT::Message message;
+
+        arrivedcount = 0;
+
+        /*char buf[100] = "hello there";
+        message.qos = MQTT::QOS1;
+        message.payloadlen = strlen(buf)+1;
+        message.payload = (void*)buf;
+        rc = client.publish("test", message);*/
+        while (arrivedcount == 0)
+            client.yield(1000);      
+
+        //ThisThread::sleep_for(250ms);
     }
 }

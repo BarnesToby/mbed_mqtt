@@ -126,6 +126,7 @@ nsapi_error_t MQTTClient::subscribe(const char *topicFilter, enum MQTT::QoS qos,
 nsapi_error_t MQTTClient::subscribe(MQTTSN_topicid &topicFilter, enum MQTTSN::QoS qos, messageHandlerSN mh)
 {
     if (clientSN == NULL) {
+        printf("client error");
         return NSAPI_ERROR_NO_CONNECTION;
     }
     nsapi_error_t ret = clientSN->subscribe(topicFilter, qos, mh);

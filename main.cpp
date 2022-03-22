@@ -114,6 +114,7 @@ int main() {
     topicid.data.long_.name = topic;
     topicid.data.long_.len = strlen(topic);
     MQTTSN::QoS grantedQoS;
+    client.connect(data);
     if ((rc = client.subscribe(topicid, MQTTSN::QOS1, messageArrived)) != 0)
         printf("rc from MQTT subscribe is %d\n", rc);
 

@@ -12,26 +12,20 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <cstring>
 
 //#include <MQTTNetwork.h>
 //#include <MQTTClient.h>
 //#include <MQTTmbed.h> // Countdown
 #include <MQTTClientMbedOs.h>
-
-#define MQTTSNCLIENT_QOS2 1
-//#include "MQTTSNUDP.h"
-//#include "MQTTSNClient.h"
-
 extern "C" void mbed_mac_address(char *s);
 
 char printbuf[100];
 
 int arrivedcount = 0;
 
-void messageArrived(MQTTSN::MessageData& md)
+void messageArrived(MQTT::MessageData& md)
 {
-    MQTTSN::Message &message = md.message;
+    MQTT::Message &message = md.message;
     sprintf(printbuf, "Message %d arrived: qos %d, retained %d, dup %d, packetid %d\n", 
 		++arrivedcount, message.qos, message.retained, message.dup, message.id);
     printf("Payload %.*s\n", (int)message.payloadlen, (char*)message.payload);
@@ -66,8 +60,8 @@ int main() {
     mqttNet.connect(hostname, port);
     //mqttNet.connect(mqtt_global::hostname, mqtt_global::port);*/
 
-    const char* hostname = "192.168.0.10";
-    int port = 10000;
+    const char* hostname = "192.168.50.223";
+    int port = 1883;
     
     /*NetworkInterface *net = NetworkInterface::get_default_instance();
     TCPSocket socket;
@@ -82,8 +76,8 @@ int main() {
         printf("Error! No network inteface found.\n");
         return 0;
     }
-
-    net->set_network("192.168.0.20", "255.255.255.0", "192.168.0.1");
+    net->set_dhcp(true);
+    //net->set_network("192.168.0.20", "255.255.255.0", "192.168.0.1");
 
     net->connect();
     printf("Ethernet Connected\n");
@@ -94,44 +88,24 @@ int main() {
     printf("IP address: %s\n", a.get_ip_address() ? a.get_ip_address() : "None");
 
     //MQTT
-    UDPSocket socket; 
+    TCPSocket socket; 
     SocketAddress addr; 
     socket.open(net);
     net->gethostbyname(hostname, &addr);
     addr.set_port(port); 
     socket.connect(addr);
     MQTTClient client(&socket); 
-    // MQTTPacket_connectData data = MQTTPacket_connectData_initializer; 
-    // data.MQTTVersion = 3;
-
-    MQTTSNPacket_connectData data = MQTTSNPacket_connectData_initializer;
-
-    
-    int rc;
-    char* topic = "mbed-sample";
-	MQTTSN_topicid topicid;
-    topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
-    topicid.data.long_.name = topic;
-    topicid.data.long_.len = strlen(topic);
-    MQTTSN::QoS grantedQoS;
-    client.connect(data);
-    if ((rc = client.subscribe(topicid, MQTTSN::QOS1, messageArrived)) != 0)
-        printf("rc from MQTT subscribe is %d\n", rc);
-
-
-    /*MQTTSN_topicid topicid;
-	topicid.type = MQTTSN_TOPIC_TYPE_NORMAL;
-    strcpy(topicid.data.short_name, "aa");
-    // topicid.data.short_name = *topicname;//"aa";
+    MQTTPacket_connectData data = MQTTPacket_connectData_initializer; 
+    data.MQTTVersion = 3;
 
     data.clientID.cstring = (char *)"MQTT_CONNECT";
     client.connect(data);
     int rc;
-    rc = client.subscribe(topicid, MQTTSN::QOS1, messageArrived);*/
+    rc = client.subscribe("a", MQTT::QOS1, messageArrived);
 
     while (true) {
 
-        MQTTSN::Message message;
+        MQTT::Message message;
 
         arrivedcount = 0;
 
